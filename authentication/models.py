@@ -1,6 +1,5 @@
 import uuid
 from django.contrib.auth.models import AbstractUser
-from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 
@@ -14,14 +13,13 @@ class User(AbstractUser):
         ("Male", "Male"),
         ("Female", "Female")
     )
-    # phone = models.IntegerField()
-    # First Name and Last Name do not cover name patterns
-    # around the globe.
+    username = models.CharField(max_length=255, null=True, unique=True)
     gender = models.CharField(max_length=20, null=True, choices=GENDER_CHOICES)
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     photo = models.ImageField(null=True, upload_to=get_avatar_upload_path)
+    code = models.CharField(max_length=100, null=True, unique=True)
     compromised = models.BooleanField(default=False)
-    admin = models.BooleanField(default=False)
+    is_admin = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     modified_at = models.DateTimeField(auto_now=True)
     address = models.CharField(max_length=255, null=True)

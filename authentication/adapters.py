@@ -1,10 +1,9 @@
 from django.utils.translation import ugettext_lazy as _
-from allauth.account.adapter import DefaultAccountAdapter, get_adapter
+from allauth.account.adapter import DefaultAccountAdapter
 from django.http import HttpRequest
 from django.conf import settings
 from django import forms
 from django.template.loader import render_to_string
-from allauth.account.models import EmailAddress
 from django.template import TemplateDoesNotExist
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 
