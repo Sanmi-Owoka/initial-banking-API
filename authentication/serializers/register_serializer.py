@@ -1,28 +1,17 @@
 from rest_framework import serializers
 from allauth.account import app_settings as allauth_settings
-from allauth.utils import email_address_exists, get_username_max_length
+from allauth.utils import email_address_exists
 from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from django.utils.translation import ugettext_lazy as _
-from uuid import uuid4
-from twilio.rest import Client
-from django.conf import settings
-from django.core.mail import send_mail, EmailMessage
-from django.template.loader import render_to_string
-from ..models import User
+from ..utils import generate_unique_code, send_email, unique_account_number
+from ..models import Wallet, WalletBalance
+from rest_auth.registration.serializers import RegisterSerializer
 
 
-class CustomRegisterSerializer(serializers.Serializer):
+class CustomRegisterSerializer(RegisterSerializer):
     first_name = serializers.CharField(required=True, write_only=True)
     last_name = serializers.CharField(required=True, write_only=True)
-    email = serializers.EmailField(required=allauth_settings.EMAIL_REQUIRED)
-    password1 = serializers.CharField(write_only=True)
-    password2 = serializers.CharField(write_only=True)
-    phone = serializers.CharField(max_length=17, required=True)
-
-    def validate_username(self, username):
-        username = get_adapter().clean_username(username)
-        return username
 
     def validate_email(self, email):
         email = get_adapter().clean_email(email)
@@ -41,13 +30,7 @@ class CustomRegisterSerializer(serializers.Serializer):
             raise serializers.ValidationError(
                 _("The two password fields didn't match.")
             )
-        getPhoneExist = User.objects.filter(phone=data["phone"])
-        if getPhoneExist.exists():
-            raise serializers.ValidationError(_("User with phone number already exist"))
         return data
-
-    def custom_signup(self, request, user):
-        pass
 
     def get_cleaned_data(self):
         return {
@@ -64,13 +47,41 @@ class CustomRegisterSerializer(serializers.Serializer):
         adapter.save_user(request, user, self)
         self.custom_signup(request, user)
         setup_user_email(request, user, [])
-        user.first_name = str(self.get_cleaned_data()["first_name"]).capitalize()
-        user.last_name = str(self.get_cleaned_data()["last_name"]).capitalize()
-        user.email = str(self.get_cleaned_data()["email"]).lower()
-        user.phone = str(self.get_cleaned_data()["phone"])
-        user.category = str(self.get_cleaned_data()["category"])
-        user.business_type = str(self.get_cleaned_data()["business_type"])
-        user.is_agent = True
-        user.compliance = 'Pending'
-        user.unique_referral_code = generate_unique_code()
+        user.first_name = str(self.get_cleaned_data()["first_name"]).capitalize().strip()
+        user.last_name = str(self.get_cleaned_data()["last_name"]).capitalize().strip()
+        user.email = str(self.get_cleaned_data()["email"]).lower().strip()
         user.save()
+        code = generate_unique_code()
+        user.code = code
+        user.save()
+        to = user.email
+        subject = "EMAIL VERIFICATION"
+        body = f"Hello {user.first_name} {user.last_name}," \
+               f"\n Verify your email with this link: http: http://127.0.0.1:8000/verify-email/?code={code} "
+        data = {"to": to, "subject": subject, "body": body}
+        send_email(data)
+        try:
+            wallet = Wallet.objects.filter(user=user)
+            if wallet.exists():
+                pass
+            wallet = Wallet.objects.create(
+                user=user,
+                unique_code=unique_account_number(),
+                type='Customer'
+            )
+            wallet.save()
+            print('Wallet successfully created')
+        except Exception as e:
+            print("error", e)
+            pass
+        try:
+            wallet_balance = WalletBalance.objects.create(
+                user=user,
+                user_wallet=wallet,
+                account_balance=0
+            )
+            wallet_balance.save()
+        except Exception as e:
+            print("error", e)
+            pass
+        return user
