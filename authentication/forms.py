@@ -1,4 +1,3 @@
-from django import forms as main_form
 from django.utils.translation import ugettext_lazy as _
 from .models import User
 from django.core.exceptions import ValidationError

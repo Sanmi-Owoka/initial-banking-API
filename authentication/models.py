@@ -5,7 +5,7 @@ from django.utils import timezone
 
 
 def get_avatar_upload_path(instance, filename):
-    return '/'.join("photos/emails/{}/{}".format(instance.email, filename))
+    return f"photos/{instance.email}/{filename}"
 
 
 class User(AbstractUser):

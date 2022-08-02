@@ -1,4 +1,3 @@
-from rest_framework import serializers
 from rest_auth.serializers import JWTSerializer
 from django.conf import settings
 from rest_auth.utils import import_callable

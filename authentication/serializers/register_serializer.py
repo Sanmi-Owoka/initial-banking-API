@@ -5,7 +5,7 @@ from allauth.account.adapter import get_adapter
 from allauth.account.utils import setup_user_email
 from django.utils.translation import ugettext_lazy as _
 from ..utils import generate_unique_code, send_email, unique_account_number
-from ..models import User, Wallet, WalletBalance
+from ..models import Wallet, WalletBalance
 from rest_auth.registration.serializers import RegisterSerializer
 
 
