@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .forms import UserCreationForm, UserChangeForm
 from django.contrib.auth import admin as auth_admin
-from .models import User, Wallet, WalletBalance
+from .models import User, Wallet, WalletBalance, PasswordResetConfirmation
 
 
 @admin.register(User)
@@ -32,3 +32,10 @@ class WalletBalanceAdmin(admin.ModelAdmin):
     list_display = ["id", "user", "user_wallet", "account_balance", "created_at", "updated_at"]
     list_display_links = ["user"]
     search_fields = ["user__email", "user_wallet__unique_code"]
+
+
+@admin.register(PasswordResetConfirmation)
+class PasswordResetConfirmationAdmin(admin.ModelAdmin):
+    list_display = ["user", "otp"]
+    list_display_links = ["user"]
+    search_fields = ["user__email"]
