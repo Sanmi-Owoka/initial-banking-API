@@ -45,3 +45,28 @@ class UserViewSet(ModelViewSet):
         except Exception as e:
             print("error", e)
             return Response({"message": [f"{e}"]}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=["POST"], detail=False, permission_classes=(AllowAny,))
+    def change_password(self, request):
+        try:
+            user = request.user
+            userQS = User.objects.get(id=user.id)
+            old_password = request.data["old_password"]
+            password = request.data["password"]
+            confirm_password = request.data["confirm_password"]
+            if not old_password:
+                return Response({"message": "Enter old password"}, status=status.HTTP_400_BAD_REQUEST)
+            if not password:
+                return Response({"message": "Enter password"}, status=status.HTTP_400_BAD_REQUEST)
+            if not confirm_password:
+                return Response({"message": "Enter password confirmation"}, status=status.HTTP_400_BAD_REQUEST)
+            if not userQS.check_password(old_password):
+                return Response({"message": "Invalid Password Entered"}, status=status.HTTP_400_BAD_REQUEST)
+            if password != confirm_password:
+                return Response({"message": "Password Input does not match"}, status=status.HTTP_400_BAD_REQUEST)
+            userQS.set_password(password)
+            userQS.save()
+            return Response({"message": "Password successfully changed"}, status=status.HTTP_200_OK)
+        except Exception as e:
+            print("error", e)
+            return Response({"message": [f"{e}"]}, status=status.HTTP_400_BAD_REQUEST)
