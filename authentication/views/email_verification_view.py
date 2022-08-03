@@ -8,10 +8,10 @@ from django.http import HttpResponse
 def verify_user_email(request):
     code = request.GET.get("code")
     if not code:
-        return Response({"message": "No code entered"}, status=status.HTTP_400_BAD_REQUEST)
+        return HttpResponse("No code entered")
     user = User.objects.filter(code=code)
     if not user.exists():
-        return Response({"message": "Invalid email verification code"}, status=status.HTTP_404_NOT_FOUND)
+        return HttpResponse("email verification link invalid")
     userQS = user.first()
     address = EmailAddress.objects.get(user=userQS)
     address.verified = True

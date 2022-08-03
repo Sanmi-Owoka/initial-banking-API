@@ -57,7 +57,7 @@ class CustomRegisterSerializer(RegisterSerializer):
         to = user.email
         subject = "EMAIL VERIFICATION"
         body = f"Hello {user.first_name} {user.last_name}," \
-               f"\n Verify your email with this link: http: http://127.0.0.1:8000/verify-email/?code={code} "
+               f"\n Verify your email with this link: http: http://127.0.0.1:8000/api/v1/verify_email/?code={code} "
         data = {"to": to, "subject": subject, "body": body}
         send_email(data)
         try:

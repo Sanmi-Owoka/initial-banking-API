@@ -17,6 +17,20 @@ class UserViewSet(ModelViewSet):
     queryset = User.objects.all()
     permission_classes = [IsAuthenticated]
 
+    @action(methods=["GET"], detail=False)
+    def profile(self, request):
+        try:
+            user = request.user
+            try:
+                userQS = User.objects.get(id=user.id)
+            except ObjectDoesNotExist:
+                return Response({"message": "user does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            response = self.get_serializer(userQS)
+            return Response(response.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print("error", e)
+            return Response({"message": [f"{e}"]}, status=status.HTTP_400_BAD_REQUEST)
+
     @action(methods=["PUT"], detail=False)
     def editProfile(self, request):
         try:
@@ -82,7 +96,8 @@ class UserViewSet(ModelViewSet):
             try:
                 user = User.objects.get(email=email)
             except ObjectDoesNotExist:
-                return Response({"message": f"user with email: {email} does not exist"})
+                return Response({"message": f"user with email: {email} does not exist"},
+                                status=status.HTTP_404_NOT_FOUND)
             code = generate_code(6)
             resetQS = PasswordResetConfirmation.objects.create(
                 user=user,
@@ -118,7 +133,7 @@ class UserViewSet(ModelViewSet):
             try:
                 resetQS = PasswordResetConfirmation.objects.get(otp=otp)
             except ObjectDoesNotExist:
-                return Response({"message": "Enter a valid otp"}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"message": "Enter a valid otp"}, status=status.HTTP_404_NOT_FOUND)
             user = User.objects.get(email=resetQS.user.email)
             user.set_password(password)
             resetQS.delete()
