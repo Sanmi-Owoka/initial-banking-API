@@ -7,7 +7,9 @@ from django.utils.translation import ugettext_lazy as _
 from ..utils import generate_unique_code, send_email, unique_account_number
 from ..models import Wallet, WalletBalance
 from rest_auth.registration.serializers import RegisterSerializer
-
+from django.core.mail import EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
 
 class CustomRegisterSerializer(RegisterSerializer):
     first_name = serializers.CharField(required=True, write_only=True)
@@ -50,16 +52,28 @@ class CustomRegisterSerializer(RegisterSerializer):
         user.first_name = str(self.get_cleaned_data()["first_name"]).capitalize().strip()
         user.last_name = str(self.get_cleaned_data()["last_name"]).capitalize().strip()
         user.email = str(self.get_cleaned_data()["email"]).lower().strip()
+        fullname = f"{user.first_name} {user.last_name}"
         user.save()
         code = generate_unique_code()
         user.code = code
         user.save()
-        to = user.email
+        email = user.email
         subject = "EMAIL VERIFICATION"
-        body = f"Hello {user.first_name} {user.last_name}," \
-               f"\n Verify your email with this link: http: http://127.0.0.1:8000/api/v1/verify_email/?code={code} "
-        data = {"to": to, "subject": subject, "body": body}
-        send_email(data)
+        
+        body = render_to_string(
+            "email/email_verify.html",
+            {"fullname": fullname, "email": email, "link": F"http://127.0.0.1:8000/api/v1/verify_email/?code={code}"}
+        )
+        message = EmailMessage(
+            subject,
+            body,
+            to=[email],
+            from_email=settings.DEV_EMAIL,
+            bcc=["ayoolaowoka@gmail.com"],
+        )
+        message.content_subtype = "html"
+        message.send(fail_silently=False)
+        print("email was sent")
         try:
             wallet = Wallet.objects.filter(user=user)
             if wallet.exists():
