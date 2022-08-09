@@ -34,6 +34,7 @@ class Wallet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_account')
     unique_code = models.IntegerField(null=True, unique=True)
     type = models.CharField(max_length=100, null=True, default="Customer")
+    deactivated = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
