@@ -7,7 +7,7 @@ from ..serializers.user_serializer import UserSerializer
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from authentication.utils import send_email
-from ..utils import generate_code
+from ..utils import generate_code, validate_email
 
 
 class UserViewSet(ModelViewSet):
@@ -93,6 +93,8 @@ class UserViewSet(ModelViewSet):
             email = request.data["email"].strip().lower()
             if not email:
                 return Response({"message": "Please enter an email"}, status=status.HTTP_400_BAD_REQUEST)
+            if not validate_email(email):
+                return Response({"message":f"Invalid email, you entered {email}"}, status=status.HTTP_400_BAD_REQUEST)
             try:
                 user = User.objects.get(email=email)
             except ObjectDoesNotExist:
