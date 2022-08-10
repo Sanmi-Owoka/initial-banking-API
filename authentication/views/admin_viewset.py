@@ -51,25 +51,20 @@ class AdminViewSet(ModelViewSet):
     def user_account(self, request):
         try:
             wallet_number = request.data["wallet_number"]
-            deactivate = request.data["deactivate"].lower()
-            print(deactivate)
+            deactivate = bool(request.data["deactivate"])
+            
             if not wallet_number:
                 return Response({"message": "No wallet number entered"}, status=status.HTTP_400_BAD_REQUEST)
-            if not deactivate:
+            if deactivate != True and deactivate != False:
                 return Response({"message": "Invalid input for deactivate"}, status=status.HTTP_400_BAD_REQUEST)
             try:
                 wallet = Wallet.objects.get(unique_code=wallet_number)
             except ObjectDoesNotExist:
                 return Response({"message": f"Wallet with number: {wallet_number} not found"}, status=status.HTTP_404_NOT_FOUND)
-            choice = ["true", "false"]
-            if deactivate not in choice:
-                return Response({"message": "Invalid Input"}, status=status.HTTP_400_BAD_REQUEST)
-            print(wallet.user.email)
-            
-            if deactivate == "true":
+            if deactivate == True:
                 wallet.deactivated = True
                 wallet.save()
-            if deactivate == "false":
+            if deactivate == False:
                 wallet.deactivated = False
                 wallet.save()
             user = User.objects.get(email=wallet.user.email)
