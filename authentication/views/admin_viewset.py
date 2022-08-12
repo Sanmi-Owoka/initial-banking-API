@@ -115,3 +115,21 @@ class AdminViewSet(ModelViewSet):
         except Exception as e:
             print("error", e)
             return Response({"message": [f"{e}"]}, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(methods=["DELETE"], detail=False)
+    def delete_user_account(self, request):
+        try:
+            email = request.GET.get('email')
+            if not email:
+                return Response({"message": "Please enter either a user email"}, status=status.HTTP_400_BAD_REQUEST)
+            if not validate_email(email):
+                    return Response({"message":f"Invalid email, you entered {email}"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                user = User.objects.get(email=email)
+            except ObjectDoesNotExist:
+                return Response({"message": F"User with email: {email} does not exist"}, status=status.HTTP_404_NOT_FOUND)
+            user.delete()
+            return Response({"message": "User deleted successfully"}, status=status.HTTP_204_NO_CONTENT)
+        except Exception as e:
+            print("error", e)
+            return Response({"message": [f"{e}"]}, status=status.HTTP_400_BAD_REQUEST)
